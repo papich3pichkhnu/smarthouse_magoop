@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "D:\\khnu\\mastery\\1kurs_2sem\\oop\\lab1\\smarthouse_magoop\\SmartHome\\SmartHome.csproj": {}
+    "D:\\khnu_program\\magistratura\\1kurs_2sem\\oop\\smarthouse_magoop\\SmartHome\\SmartHome.csproj": {}
   },
   "projects": {
-    "D:\\khnu\\mastery\\1kurs_2sem\\oop\\lab1\\smarthouse_magoop\\SmartHome\\SmartHome.csproj": {
+    "D:\\khnu_program\\magistratura\\1kurs_2sem\\oop\\smarthouse_magoop\\SmartHome\\SmartHome.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\khnu\\mastery\\1kurs_2sem\\oop\\lab1\\smarthouse_magoop\\SmartHome\\SmartHome.csproj",
+        "projectUniqueName": "D:\\khnu_program\\magistratura\\1kurs_2sem\\oop\\smarthouse_magoop\\SmartHome\\SmartHome.csproj",
         "projectName": "SmartHome",
-        "projectPath": "D:\\khnu\\mastery\\1kurs_2sem\\oop\\lab1\\smarthouse_magoop\\SmartHome\\SmartHome.csproj",
+        "projectPath": "D:\\khnu_program\\magistratura\\1kurs_2sem\\oop\\smarthouse_magoop\\SmartHome\\SmartHome.csproj",
         "packagesPath": "C:\\Users\\Vova\\.nuget\\packages\\",
-        "outputPath": "D:\\khnu\\mastery\\1kurs_2sem\\oop\\lab1\\smarthouse_magoop\\SmartHome\\obj\\",
+        "outputPath": "D:\\khnu_program\\magistratura\\1kurs_2sem\\oop\\smarthouse_magoop\\SmartHome\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
           "C:\\Users\\Vova\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -45,8 +49,7 @@
             "net47",
             "net471",
             "net472",
-            "net48",
-            "net481"
+            "net48"
           ],
           "assetTargetFallback": true,
           "warn": true,
@@ -55,7 +58,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.402\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "c:\\program files\\dotnet\\sdk\\6.0.202\\RuntimeIdentifierGraph.json"
         }
       }
     }
