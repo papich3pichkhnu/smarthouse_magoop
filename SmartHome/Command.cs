@@ -79,4 +79,32 @@ namespace SmartHome
             _commands.Clear();
         }
     }
+    class MacroCommand:ICommand
+    {
+        private List<ICommand> _commands;
+        public MacroCommand(List<ICommand> commands)
+        {
+            _commands = commands;
+        }
+        public void AddCommand(ICommand command)
+        {
+            _commands.Add(command);
+        }
+
+        public void Execute()
+        {
+            foreach(ICommand c in _commands)
+            {
+                c?.Execute();
+            }
+        }
+
+        public void Undo()
+        {
+            foreach(ICommand c in _commands)
+            {
+                c?.Undo();
+            }
+        }
+    }
 }
