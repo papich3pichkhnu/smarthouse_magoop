@@ -1,2 +1,6 @@
 SmartHome/obj/*
 SmartHome/bin/*
+SmartHome/obj/Debug/*
+SmartHome/obj/Debug/net6.0/*
+SmartHome/obj/Debug/net6.0/SmartHome.assets.cache
+SmartHome/obj/Debug/net6.0/SmartHome.GeneratedMSBuildEditorConfig.editorconfig
