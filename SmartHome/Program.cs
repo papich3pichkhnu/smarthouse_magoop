@@ -50,24 +50,36 @@ namespace SmartHome
 
             //Strategy
 
+            /*LEDLamp ledLamp = new LEDLamp("Lamp",100,100,null,6000);
+            
+            ledLamp.OperationStrategy=new NormalMode();
+            ledLamp.ApplyStrategy();
+            ledLamp.TurnOn();*/
+
+            //Observer
+
+            /*MotionSensor motionSensor = new MotionSensor();
+            SecuritySystem securitySystem = new SecuritySystem();
+            motionSensor.AddObserver(ledLamp);
+            motionSensor.AddObserver(securitySystem);
+            motionSensor.DetectMotion();*/
+
+            //MacroCommand
+
             LEDLamp ledLamp = new LEDLamp("Lamp",100,100,null,6000);
             
             ledLamp.OperationStrategy=new NormalMode();
             ledLamp.ApplyStrategy();
-            ledLamp.TurnOn();
 
-            //Observer
-
-            MotionSensor motionSensor = new MotionSensor();
-            SecuritySystem securitySystem = new SecuritySystem();
-            motionSensor.AddObserver(ledLamp);
-            motionSensor.AddObserver(securitySystem);
-            motionSensor.DetectMotion();
-
-            RemoteCommandInvoker remote = new RemoteCommandInvoker();
-            remote.AddCommand(new TurnOffCommand(ledLamp));
-            remote.AddCommand(new SetHalfBrightnessCommand(ledLamp));
-            remote.ExecuteCommands();
+            List<ICommand> commands = new List<ICommand>
+            {
+                new TurnOffCommand(ledLamp),
+                new SetHalfBrightnessCommand(ledLamp),
+                new TurnOnCommand(ledLamp)
+            };
+            MacroCommand mc = new MacroCommand(commands);
+            mc.Execute();
+            mc.Undo();
             
         }
 
