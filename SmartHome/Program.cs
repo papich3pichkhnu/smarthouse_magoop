@@ -78,6 +78,8 @@ namespace SmartHome
                 new TurnOnCommand(ledLamp)
             };
             MacroCommand mc = new MacroCommand(commands);
+            RemoteController rc=new RemoteController();
+            rc.AddCommand(mc);
             mc.Execute();
             mc.Undo();
             

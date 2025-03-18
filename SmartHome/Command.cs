@@ -63,7 +63,7 @@ namespace SmartHome
             System.Console.WriteLine($"Setting lamp {this._device.Name} brightness to {old_val}");
         }
     }
-    class RemoteCommandInvoker
+    class RemoteController
     {
         private List<ICommand> _commands=new List<ICommand>();
         public void AddCommand(ICommand command)
