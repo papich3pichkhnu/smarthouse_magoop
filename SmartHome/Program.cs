@@ -32,7 +32,7 @@ namespace SmartHome
 
             //Builders, Prototypes
 
-            LampCreator lampCreator = new LampCreator();
+            /*LampCreator lampCreator = new LampCreator();
             RGBLampBuilder builder = new BrightRedRGBLampBuilder();
             RGBLamp? brightRed = lampCreator.Create(builder);
             brightRed?.TurnOn();
@@ -46,9 +46,29 @@ namespace SmartHome
             builder= new SemiBrightGreenRGBLampBuilder();
             RGBLamp? semiBrightGreen = lampCreator.Create(builder);
             semiBrightGreen.TurnOn();
-            semiBrightGreen.TurnOff();
+            semiBrightGreen.TurnOff();*/
 
+            //Strategy
 
+            LEDLamp ledLamp = new LEDLamp("Lamp",100,100,null,6000);
+            
+            ledLamp.OperationStrategy=new NormalMode();
+            ledLamp.ApplyStrategy();
+            ledLamp.TurnOn();
+
+            //Observer
+
+            MotionSensor motionSensor = new MotionSensor();
+            SecuritySystem securitySystem = new SecuritySystem();
+            motionSensor.AddObserver(ledLamp);
+            motionSensor.AddObserver(securitySystem);
+            motionSensor.DetectMotion();
+
+            RemoteCommandInvoker remote = new RemoteCommandInvoker();
+            remote.AddCommand(new TurnOffCommand(ledLamp));
+            remote.AddCommand(new SetHalfBrightnessCommand(ledLamp));
+            remote.ExecuteCommands();
+            
         }
 
     }

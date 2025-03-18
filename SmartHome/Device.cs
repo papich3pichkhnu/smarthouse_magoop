@@ -8,6 +8,8 @@ public abstract class Device
 
         public abstract Device Clone();
         public string Name { get; set; } = "Device";
+        
+
     }
 
 }

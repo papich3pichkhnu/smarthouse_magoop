@@ -24,7 +24,7 @@ namespace SmartHome{
             Console.WriteLine($"{name} kitchen lamp factory created.");
         }
         public override Lamp CreateLamp(){
-            return new LEDLamp("Led lamp",100,6000);
+            return new LEDLamp("Led lamp",100,100,null, 6000);
         }
         public override LampSpecification CreateLampSpecification(){
             return new KitchenLampSpecification();
@@ -35,7 +35,7 @@ namespace SmartHome{
             Console.WriteLine($"{name} living room lamp factory created.");
         }
         public override Lamp CreateLamp(){
-            return new RGBLamp("Led lamp",100,8000,255,255,0);
+            return new RGBLamp("Led lamp",100,100,null,8000,255,255,0);
         }
         public override LampSpecification CreateLampSpecification(){
             return new LivingRoomLampSpecification();
