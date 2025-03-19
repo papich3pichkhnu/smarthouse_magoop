@@ -53,6 +53,11 @@ namespace SmartHome
             this.Motion=true;
             this.NotifyObservers();            
         }
+        protected override void ExecuteMainFunction()
+        {
+            System.Console.WriteLine("Motion sensor is running");
+
+        }
 
     }
 }

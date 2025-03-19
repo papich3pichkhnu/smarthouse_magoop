@@ -48,5 +48,10 @@ namespace SmartHome
                 Console.WriteLine($"No motion");
             }
         }
+
+        protected override void ExecuteMainFunction()
+        {
+            System.Console.WriteLine("Security System is waiting for events");
+        }
     }
 }

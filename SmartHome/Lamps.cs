@@ -30,7 +30,7 @@ namespace SmartHome
                 //Console.WriteLine($"Brightness set to {_brightness}.");
             }
         }
-        public ILampOperationStrategy OperationStrategy {get;set;}
+        public ILampOperationStrategy? OperationStrategy {get;set;}
 
         public Lamp(string name, int power, int maxPower, ILampOperationStrategy lampOperationStrategy)
         {
@@ -45,12 +45,12 @@ namespace SmartHome
         }
         public override void TurnOff()
         {
-            Console.WriteLine($"Turning off {Power} Watt {Name}. Brightness set at {Brightness}");
+            Console.WriteLine($"Turning off {Power} Watt {Name} lamp. Brightness set at {Brightness}");
         }
 
         public override void TurnOn()
         {
-            Console.WriteLine($"Turning on {Power} Watt {Name}. Brightness set at {Brightness}");
+            Console.WriteLine($"Turning on {Power} Watt {Name} lamp. Brightness set at {Brightness}");
         }
         
         public void ApplyStrategy()
@@ -73,7 +73,7 @@ namespace SmartHome
     public class LEDLamp : Lamp
     {
         public int ColorTemperature { get; set; }
-        public LEDLamp(string name, int power, int maxPower, ILampOperationStrategy? lampOperationStrategy ,int colorTemperature) :
+        public LEDLamp(string name, int power, int maxPower, ILampOperationStrategy lampOperationStrategy ,int colorTemperature) :
         base(name, power,maxPower, lampOperationStrategy)
         {
             this.ColorTemperature = colorTemperature;
@@ -84,6 +84,11 @@ namespace SmartHome
         public override Device Clone()
         {
             return new LEDLamp(this.Name, this.Power, this.MaxPower, this.OperationStrategy,this.ColorTemperature);
+        }
+
+        protected override void ExecuteMainFunction()
+        {
+            System.Console.WriteLine($"Turning on light on lamp {Name} at brighness {Brightness} and color temperature {ColorTemperature}");
         }
     }
 
@@ -114,6 +119,11 @@ namespace SmartHome
         {
             Console.WriteLine($"Turning on {Power} Watt {Name}. Brightness set at {Brightness}. Color - ({this.Red},{this.Green},{this.Blue})");
 
+        }
+
+        protected override void ExecuteMainFunction()
+        {
+            System.Console.WriteLine($"Turning on ({Red},{Green},{Blue}) colored light on lamp {Name} at brighness {Brightness} and color temperature {ColorTemperature}");
         }
     }
 }

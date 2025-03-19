@@ -50,24 +50,58 @@ namespace SmartHome
 
             //Strategy
 
+            /*LEDLamp ledLamp = new LEDLamp("Lamp",100,100,null,6000);
+            
+            ledLamp.OperationStrategy=new NormalMode();
+            ledLamp.ApplyStrategy();
+            ledLamp.TurnOn();*/
+
+            //Observer
+
+            /*MotionSensor motionSensor = new MotionSensor();
+            SecuritySystem securitySystem = new SecuritySystem();
+            motionSensor.AddObserver(ledLamp);
+            motionSensor.AddObserver(securitySystem);
+            motionSensor.DetectMotion();*/
+
+            //MacroCommand
+
             LEDLamp ledLamp = new LEDLamp("Lamp",100,100,null,6000);
             
             ledLamp.OperationStrategy=new NormalMode();
             ledLamp.ApplyStrategy();
-            ledLamp.TurnOn();
 
-            //Observer
+            List<ICommand> commands = new List<ICommand>
+            {
+                new TurnOffCommand(ledLamp),
+                new SetHalfBrightnessCommand(ledLamp),
+                new TurnOnCommand(ledLamp)
+            };
+            ICommand mc = new MacroCommand(commands);
+            RemoteController rc=new RemoteController();
+            rc.AddCommand(mc);
+            rc.ExecuteCommands();            
 
+            //TemplateMethod
+            System.Console.WriteLine("--------------------------------");
+
+            RGBLamp rGBLamp = new RGBLamp("RGB Lamp", 100, 100, null, 6000,100,100,100);
+            Thermostat thermostat = new Thermostat("Thermostat",20);
             MotionSensor motionSensor = new MotionSensor();
-            SecuritySystem securitySystem = new SecuritySystem();
-            motionSensor.AddObserver(ledLamp);
-            motionSensor.AddObserver(securitySystem);
-            motionSensor.DetectMotion();
+            System.Console.WriteLine("--------------------------------");
+            System.Console.WriteLine("Template command");
+            System.Console.WriteLine("--------------------------------");
+            List<ICommand> commands1=new List<ICommand>
+            {
+                new FunctionCommand(rGBLamp.OperateDevice),
+                new FunctionCommand(thermostat.OperateDevice),
+                new FunctionCommand(motionSensor.OperateDevice)
+            };
+            ICommand mc1 = new MacroCommand(commands1);
+            rc.ClearCommands();
+            rc.AddCommand(mc1);
+            rc.ExecuteCommands();            
 
-            RemoteCommandInvoker remote = new RemoteCommandInvoker();
-            remote.AddCommand(new TurnOffCommand(ledLamp));
-            remote.AddCommand(new SetHalfBrightnessCommand(ledLamp));
-            remote.ExecuteCommands();
             
         }
 
