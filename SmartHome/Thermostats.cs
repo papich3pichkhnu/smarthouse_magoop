@@ -14,16 +14,20 @@ namespace SmartHome{
         }
         public override void TurnOn()
         {
-            Console.WriteLine($"Turning on {Name}. Temperature set at {Temperature}.");
+            Console.WriteLine($"Turning on {Name}. ");
         }
 
         public override void TurnOff()
         {
-            Console.WriteLine($"Turning off {Name}. Temperature set at {Temperature}.");
+            Console.WriteLine($"Turning off {Name}. ");
         }
         public override Device Clone()
         {
             return new Thermostat(this.Name,this.Temperature);
+        }
+        protected override void ExecuteMainFunction()
+        {
+            System.Console.WriteLine($"Setting temperature to {Temperature}");
         }
     }
 }

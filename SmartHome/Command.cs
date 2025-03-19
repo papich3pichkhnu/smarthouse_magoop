@@ -63,6 +63,24 @@ namespace SmartHome
             System.Console.WriteLine($"Setting lamp {this._device.Name} brightness to {old_val}");
         }
     }
+    class FunctionCommand:ICommand
+    {
+        //wrapper to any given function
+        private Action _func;
+        public FunctionCommand(Action func)
+        {
+            _func = func;
+        }
+        public void Execute()
+        {
+            _func();
+        }
+        public void Undo()
+        {
+            throw new NotImplementedException();
+        }
+
+    }
     class RemoteController
     {
         private List<ICommand> _commands=new List<ICommand>();
@@ -76,6 +94,10 @@ namespace SmartHome
             {
                 c?.Execute();                
             }
+            _commands.Clear();
+        }
+        public void ClearCommands()
+        {
             _commands.Clear();
         }
     }

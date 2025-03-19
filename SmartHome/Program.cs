@@ -77,11 +77,31 @@ namespace SmartHome
                 new SetHalfBrightnessCommand(ledLamp),
                 new TurnOnCommand(ledLamp)
             };
-            MacroCommand mc = new MacroCommand(commands);
+            ICommand mc = new MacroCommand(commands);
             RemoteController rc=new RemoteController();
             rc.AddCommand(mc);
-            mc.Execute();
-            mc.Undo();
+            rc.ExecuteCommands();            
+
+            //TemplateMethod
+            System.Console.WriteLine("--------------------------------");
+
+            RGBLamp rGBLamp = new RGBLamp("RGB Lamp", 100, 100, null, 6000,100,100,100);
+            Thermostat thermostat = new Thermostat("Thermostat",20);
+            MotionSensor motionSensor = new MotionSensor();
+            System.Console.WriteLine("--------------------------------");
+            System.Console.WriteLine("Template command");
+            System.Console.WriteLine("--------------------------------");
+            List<ICommand> commands1=new List<ICommand>
+            {
+                new FunctionCommand(rGBLamp.OperateDevice),
+                new FunctionCommand(thermostat.OperateDevice),
+                new FunctionCommand(motionSensor.OperateDevice)
+            };
+            ICommand mc1 = new MacroCommand(commands1);
+            rc.ClearCommands();
+            rc.AddCommand(mc1);
+            rc.ExecuteCommands();            
+
             
         }
 
