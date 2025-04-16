@@ -4,13 +4,25 @@ namespace SmartHome
 {
     public enum CommandType
     {
-        PowerOn,
-        PowerOff,
-        Status
+        TurnOn,
+        TurnOff,
+        Status,
+        SetBrightness,
+        SetColor,
+        SetTemperature,
+        SetColorTemperatureK
     }
     public class Command
     {
         public CommandType CommandType {get;}
+        public string targetName="";
+        public object[] Parameters {get; }
+        public Command(CommandType commandType, string target, params object[] parameters)
+        {
+            this.CommandType=commandType;
+            this.targetName=target;
+            this.Parameters=parameters;
+        }
         /*void Execute();
         void Undo();*/
     }

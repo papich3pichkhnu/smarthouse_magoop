@@ -24,9 +24,13 @@ namespace SmartHome
             get => _brightness;
             set
             {
-                if (value < 0 || value > 100)
-                    _brightness = 50;
-                else _brightness = value;
+                _brightness=Math.Clamp(value,0,100);
+                if (CurrentState is OnState && !(CurrentState is ActiveState) )
+                {
+                    CurrentState=new ActiveState("dimming");
+                }
+                System.Console.WriteLine($"Light {Name} brightness set to {value}%");
+                
                 //Console.WriteLine($"Brightness set to {_brightness}.");
             }
         }
@@ -68,11 +72,23 @@ namespace SmartHome
             }               
 
         }
+        public override void RequestStatus()
+        {
+            Console.WriteLine($"Light {Name} brigthness: {Brightness}%");
+        }
     }
 
     public class LEDLamp : Lamp
     {
-        public int ColorTemperature { get; set; }
+        private int _colorTemperature;
+        public int ColorTemperature { get => _colorTemperature; set
+            {
+                _colorTemperature=Math.Clamp(value,1000,10000);
+                
+                System.Console.WriteLine($"Light {Name} color temperature set to {_colorTemperature}%");
+                
+            } 
+        }
         public LEDLamp(string name, int power, int maxPower, ILampOperationStrategy lampOperationStrategy ,int colorTemperature) :
         base(name, power,maxPower, lampOperationStrategy)
         {
@@ -90,6 +106,32 @@ namespace SmartHome
         {
             System.Console.WriteLine($"Turning on light on lamp {Name} at brighness {Brightness} and color temperature {ColorTemperature}");
         }
+        protected override void HandleSpecificCommand(Command command)
+        {
+            switch(command.CommandType)
+            {
+                case CommandType.SetBrightness:
+                    if(command.Parameters.Length>0 && command.Parameters[0] is int brightness)
+                    {
+                        this.Brightness=brightness;
+                    }
+                    break;
+                case CommandType.SetColorTemperatureK:
+                    if(command.Parameters.Length>0 && command.Parameters[0] is int colorTempK)
+                    {
+                        this.ColorTemperature=colorTempK;
+                    }
+                    break;
+                default:
+                    System.Console.WriteLine($"Command {command.CommandType} not supported by light {Name}");
+                    break;
+            }
+        }
+        public override void RequestStatus()
+        {
+            System.Console.WriteLine($"Light {Name}, brightness: {Brightness}%, ColorTemperatureK: {ColorTemperature}K ");
+        }
+        
     }
 
     public class RGBLamp : LEDLamp
@@ -124,6 +166,11 @@ namespace SmartHome
         protected override void ExecuteMainFunction()
         {
             System.Console.WriteLine($"Turning on ({Red},{Green},{Blue}) colored light on lamp {Name} at brighness {Brightness} and color temperature {ColorTemperature}");
+        }
+        public override void RequestStatus()
+        {
+            base.RequestStatus();
+            System.Console.WriteLine($"Light {Name}, brightness: {Brightness}%, ColorTemperatureK: {ColorTemperature}K, Color - ({Red},{Green},{Blue})");
         }
     }
 }

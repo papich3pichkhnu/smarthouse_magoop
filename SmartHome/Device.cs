@@ -10,13 +10,39 @@ public abstract class Device
         public Device(string name)
         {
             this.Name=name;
-            _currentState = new OffState();
+            CurrentState = new OffState();
 
         }
         public void ExecuteCommand(Command command)
         {
             System.Console.WriteLine($"Executing {command.CommandType} on device {Name}");
+            if(_currentState.CanHandleCommand(command.CommandType))
+            {
+                switch(command.CommandType)
+                {
+                    case CommandType.TurnOn:
+                        this.TurnOn();
+                        break;
+                    case CommandType.TurnOff:
+                        this.TurnOff();
+                        break;
+                    case CommandType.Status:
+                        this.RequestStatus();
+                        break;
+                    default:
+                        break;
+                }
+            }
             
+        }
+        public virtual void RequestStatus()
+        {
+            System.Console.WriteLine($"Device {Name} status: {_currentState.GetType().Name}");
+        }
+        public virtual void ReportError(string error)
+        {
+            System.Console.WriteLine($"Error on device {Name}: {error}");
+            CurrentState=new ErrorState(error);
         }
         public virtual void TurnOn(){
             if(CurrentState is OffState)
@@ -42,6 +68,7 @@ public abstract class Device
         {
             System.Console.WriteLine($"Device {Name} initialized.");
         }
+        protected abstract void HandleSpecificCommand(Command command);
         protected abstract void ExecuteMainFunction();
         public void OperateDevice()
         {
