@@ -1,13 +1,21 @@
 using System;
+using System.Data;
 namespace SmartHome
 {
-    interface ICommand
+    public enum CommandType
     {
-        void Execute();
-        void Undo();
+        PowerOn,
+        PowerOff,
+        Status
+    }
+    public class Command
+    {
+        public CommandType CommandType {get;}
+        /*void Execute();
+        void Undo();*/
     }
 
-    class TurnOnCommand : ICommand
+    /*public class TurnOnCommand : ICommand
     {
         private Device _device;
         public TurnOnCommand(Device device)
@@ -25,7 +33,7 @@ namespace SmartHome
 
     }
 
-    class TurnOffCommand : ICommand
+    public class TurnOffCommand : ICommand
     {
         private Device _device;
         public TurnOffCommand(Device device)
@@ -42,7 +50,7 @@ namespace SmartHome
         }
     }
 
-    class SetHalfBrightnessCommand:ICommand
+    public class SetHalfBrightnessCommand:ICommand
     {
         private Lamp _device;
         private int old_val;
@@ -63,7 +71,7 @@ namespace SmartHome
             System.Console.WriteLine($"Setting lamp {this._device.Name} brightness to {old_val}");
         }
     }
-    class FunctionCommand:ICommand
+    public class FunctionCommand:ICommand
     {
         //wrapper to any given function
         private Action _func;
@@ -80,8 +88,8 @@ namespace SmartHome
             throw new NotImplementedException();
         }
 
-    }
-    class RemoteController
+    }*/
+    /*public class RemoteController
     {
         private List<ICommand> _commands=new List<ICommand>();
         public void AddCommand(ICommand command)
@@ -101,7 +109,8 @@ namespace SmartHome
             _commands.Clear();
         }
     }
-    class MacroCommand:ICommand
+    */
+    /*class MacroCommand:ICommand
     {
         private List<ICommand> _commands;
         public MacroCommand(List<ICommand> commands)
@@ -128,5 +137,5 @@ namespace SmartHome
                 c?.Undo();
             }
         }
-    }
+    }*/
 }

@@ -11,9 +11,9 @@ namespace SmartHome
             
         }
 
-        public MotionSensor(string name)
+        public MotionSensor(string name):base(name)
         {
-            this.Name=name;
+            
             this.observers=new List<IObserver>();
             this.Motion=false;
             System.Console.WriteLine($"Creating motion sensor {this.Name}");
@@ -24,7 +24,7 @@ namespace SmartHome
             return new MotionSensor(this.Name);
         }
 
-        public override void TurnOff()
+        /*public override void TurnOff()
         {            
             Console.WriteLine($"Turning off Motion sensor {this.Name}. ");
         }
@@ -32,7 +32,7 @@ namespace SmartHome
         public override void TurnOn()
         {
             Console.WriteLine($"Turning on Motion sensor {this.Name}. ");
-        }
+        }*/
         public void AddObserver(IObserver o)
         {
             this.observers.Add(o);

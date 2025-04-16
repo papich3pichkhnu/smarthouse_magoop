@@ -120,6 +120,8 @@ namespace SmartHome
                 var device = iterator.Next();
                 device.TurnOn();
             }
+
+            
             
         }
 

@@ -32,9 +32,9 @@ namespace SmartHome
         }
         public ILampOperationStrategy? OperationStrategy {get;set;}
 
-        public Lamp(string name, int power, int maxPower, ILampOperationStrategy lampOperationStrategy)
+        public Lamp(string name, int power, int maxPower, ILampOperationStrategy lampOperationStrategy):base(name)
         {
-            this.Name = name;
+            
             this.MaxPower=maxPower;
             this.Power = power;
             
@@ -43,7 +43,7 @@ namespace SmartHome
             this.OperationStrategy=lampOperationStrategy;
 
         }
-        public override void TurnOff()
+        /*public override void TurnOff()
         {
             Console.WriteLine($"Turning off {Power} Watt {Name} lamp. Brightness set at {Brightness}");
         }
@@ -52,7 +52,7 @@ namespace SmartHome
         {
             Console.WriteLine($"Turning on {Power} Watt {Name} lamp. Brightness set at {Brightness}");
         }
-        
+        */
         public void ApplyStrategy()
         {
             OperationStrategy?.Execute(this);
@@ -111,7 +111,7 @@ namespace SmartHome
         {
             return new RGBLamp(this.Name,  this.Power, this.MaxPower, this.OperationStrategy, this.ColorTemperature,this.Red, this.Green, this.Blue);
         }
-        public override void TurnOff()
+        /*public override void TurnOff()
         {
             Console.WriteLine($"Turning off {Power} Watt {Name}. Brightness set at {Brightness}. Color - ({this.Red},{this.Green},{this.Blue})");
         }
@@ -119,7 +119,7 @@ namespace SmartHome
         {
             Console.WriteLine($"Turning on {Power} Watt {Name}. Brightness set at {Brightness}. Color - ({this.Red},{this.Green},{this.Blue})");
 
-        }
+        }*/
 
         protected override void ExecuteMainFunction()
         {

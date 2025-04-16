@@ -12,7 +12,7 @@ namespace SmartHome{
             Console.WriteLine($"Created thermostat {Name}");
 
         }
-        public override void TurnOn()
+        /*public override void TurnOn()
         {
             Console.WriteLine($"Turning on {Name}. ");
         }
@@ -20,7 +20,7 @@ namespace SmartHome{
         public override void TurnOff()
         {
             Console.WriteLine($"Turning off {Name}. ");
-        }
+        }*/
         public override Device Clone()
         {
             return new Thermostat(this.Name,this.Temperature);
