@@ -102,11 +102,11 @@ namespace SmartHome
             rc.AddCommand(mc1);
             rc.ExecuteCommands();         */
 
-            //Iterator
+            //Iterator, State, ChainOfResponsibilty
             System.Console.WriteLine("--------------------------------");            
             RGBLamp rGBLamp = new RGBLamp("RGB Lamp", 100, 100, null, 6000,100,100,100);
-            Thermostat thermostat = new Thermostat("Thermostat",20);
-            MotionSensor motionSensor = new MotionSensor();
+            Thermostat thermostat = new Thermostat("Thermostat",20,20);
+            MotionSensor motionSensor = new MotionSensor("Motion sensor");
             
             Room room = new Room("Living room");
             room.AddDevice(rGBLamp);
@@ -120,6 +120,27 @@ namespace SmartHome
                 var device = iterator.Next();
                 device.TurnOn();
             }
+            
+            SmartHomeController smartHomeController=new SmartHomeController("Living room");
+            
+            smartHomeController.AddDevice(rGBLamp);
+            smartHomeController.AddDevice(thermostat);
+            smartHomeController.AddDevice(motionSensor);
+
+            smartHomeController.SendCommand(CommandType.Status,"RGB Lamp");
+
+            var thermostat1=smartHomeController.FindDevice("Thermostat") as Thermostat;
+            thermostat1.CurrentTemperature = 22.0;
+
+            smartHomeController.SendCommand(CommandType.SetColor,"RGB Lamp",255,200,0);
+            
+            System.Console.WriteLine("-----------");
+            System.Console.WriteLine("Logs:");
+            foreach(var str in smartHomeController.GetLogs())
+            {
+                System.Console.WriteLine(str);
+            }
+
 
             
             

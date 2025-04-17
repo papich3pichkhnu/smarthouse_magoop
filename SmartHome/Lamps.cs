@@ -42,7 +42,7 @@ namespace SmartHome
             this.MaxPower=maxPower;
             this.Power = power;
             
-            Console.WriteLine($"Created {Name} lamp {Power} Watt");
+            //Console.WriteLine($"Created {Name} lamp {Power} Watt");
             this.Brightness = 50;
             this.OperationStrategy=lampOperationStrategy;
 
@@ -85,7 +85,7 @@ namespace SmartHome
             {
                 _colorTemperature=Math.Clamp(value,1000,10000);
                 
-                System.Console.WriteLine($"Light {Name} color temperature set to {_colorTemperature}%");
+                System.Console.WriteLine($"Light {Name} color temperature set to {_colorTemperature}K");
                 
             } 
         }
@@ -93,7 +93,7 @@ namespace SmartHome
         base(name, power,maxPower, lampOperationStrategy)
         {
             this.ColorTemperature = colorTemperature;
-            Console.WriteLine($"Created {Name} LED lamp {Power} Watt");
+            //Console.WriteLine($"Created {Name} LED lamp {Power} Watt");
             this.Brightness = 50;
 
         }
@@ -104,7 +104,7 @@ namespace SmartHome
 
         protected override void ExecuteMainFunction()
         {
-            System.Console.WriteLine($"Turning on light on lamp {Name} at brighness {Brightness} and color temperature {ColorTemperature}");
+            System.Console.WriteLine($"Turning on light on lamp {Name} at brighness {Brightness}% and color temperature {ColorTemperature}K");
         }
         protected override void HandleSpecificCommand(Command command)
         {
@@ -169,8 +169,37 @@ namespace SmartHome
         }
         public override void RequestStatus()
         {
-            base.RequestStatus();
+           
             System.Console.WriteLine($"Light {Name}, brightness: {Brightness}%, ColorTemperatureK: {ColorTemperature}K, Color - ({Red},{Green},{Blue})");
+        }
+        protected override void HandleSpecificCommand(Command command)
+        {
+            switch(command.CommandType)
+            {
+                case CommandType.SetBrightness:
+                    if(command.Parameters.Length>0 && command.Parameters[0] is int brightness)
+                    {
+                        this.Brightness=brightness;
+                    }
+                    break;
+                case CommandType.SetColorTemperatureK:
+                    if(command.Parameters.Length>0 && command.Parameters[0] is int colorTempK)
+                    {
+                        this.ColorTemperature=colorTempK;
+                    }
+                    break;
+                case CommandType.SetColor:
+                    if (command.Parameters.Length > 2 && command.Parameters[0] is int red && command.Parameters[1] is int green && command.Parameters[2] is int blue)   
+                    {
+                        this.Red=red;
+                        this.Green=green;
+                        this.Blue=blue;
+                    }
+                    break;
+                default:
+                    System.Console.WriteLine($"Command {command.CommandType} not supported by light {Name}");
+                    break;
+            }
         }
     }
 }

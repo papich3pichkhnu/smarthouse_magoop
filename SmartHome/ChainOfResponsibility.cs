@@ -16,7 +16,7 @@ namespace SmartHome
         }
         public virtual void ProcessCommand(Command command)
         {
-            if(_nextProcessor!=null)
+            if(!CanProcessCommand(command) && _nextProcessor!=null)
             {
                 _nextProcessor.ProcessCommand(command);
             }
@@ -60,13 +60,42 @@ namespace SmartHome
                return false;
         }
     }
+    public class LoggerProcessor : CommandProcessor
+    {
+        public LoggerProcessor(SmartHomeController controller) : base(controller)
+        {
+        }
+
+        protected override bool CanProcessCommand(Command command)
+        {
+            return true;
+        }
+        public override void ProcessCommand(Command command)
+        {
+            _controller.LogCommand(command);
+            if(_nextProcessor!=null)
+            {
+                _nextProcessor.ProcessCommand(command);
+            }
+        }
+        
+    }
+
     public class SmartHomeController
     {
         private CommandProcessor _commandChain;
         private Room room;
-        public SmartHomeController()
+        private List<String> logs=new List<string>();
+        public SmartHomeController(string roomName)
+
         {
-            
+            room = new Room(roomName);
+
+            var loggerProcessor=new LoggerProcessor(this);
+            var statusProcessor=new StatusProcessor(this);
+            var functionProcessor=new FunctionalCommandProcessor(this);
+            _commandChain=loggerProcessor;
+            loggerProcessor.SetNext(statusProcessor).SetNext(functionProcessor);
 
         }
         public void AddDevice(Device device)
@@ -92,6 +121,23 @@ namespace SmartHome
         {
             System.Console.WriteLine($"Executing command {command.CommandType} on {command.targetName}");
             _commandChain.ProcessCommand(command);   
+        }
+
+        
+        public void SendCommand(CommandType commandType,string device, params object[] parameters)
+        {
+            var command=new Command(commandType,device,parameters);
+            ExecuteCommand(command);
+        }
+        public void LogCommand(Command command)
+        {
+            var logstr=$"command {command.CommandType} on {command.targetName}";
+            System.Console.WriteLine($"Logging {logstr}");
+            logs.Add(logstr);
+        }
+        public List<string> GetLogs()
+        {
+            return logs;
         }
     }
 }

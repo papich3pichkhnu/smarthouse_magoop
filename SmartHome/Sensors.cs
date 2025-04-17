@@ -59,5 +59,9 @@ namespace SmartHome
 
         }
 
+        protected override void HandleSpecificCommand(Command command)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

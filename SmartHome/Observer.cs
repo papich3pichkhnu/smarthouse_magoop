@@ -53,5 +53,10 @@ namespace SmartHome
         {
             System.Console.WriteLine("Security System is waiting for events");
         }
+
+        protected override void HandleSpecificCommand(Command command)
+        {
+            return;
+        }
     }
 }

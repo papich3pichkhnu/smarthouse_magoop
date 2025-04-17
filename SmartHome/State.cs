@@ -17,7 +17,7 @@ namespace SmartHome
         }
         public override bool CanHandleCommand(CommandType command)
         {
-            return command==CommandType.PowerOn || command==CommandType.Status;
+            return command==CommandType.TurnOn || command==CommandType.Status;
         }
     }
     public class OnState:DeviceState
@@ -28,21 +28,21 @@ namespace SmartHome
         }
         public override bool CanHandleCommand(CommandType command)
         {
-            return command!=CommandType.PowerOn;
+            return command!=CommandType.TurnOn;
         }
                 
     }
     public class ErrorState:DeviceState
     {
         private string _errorMessage;
-        public ErrorState(string errorMessage="unknown error")=>errorMessage=_errorMessage;
+        public ErrorState(string errorMessage="unknown error")=>_errorMessage=errorMessage;
         public override void OnEnter(Device device)
         {
             System.Console.WriteLine($"Device {device.Name} entered error state: {_errorMessage}");            
         }
         public override bool CanHandleCommand(CommandType command)
         {
-            return command==CommandType.PowerOff || command==CommandType.Status;
+            return command==CommandType.TurnOff || command==CommandType.Status;
         }
     }
     public class ActiveState:DeviceState
@@ -58,7 +58,7 @@ namespace SmartHome
         }
         public override bool CanHandleCommand(CommandType command)
         {
-            return command!=CommandType.PowerOn;
+            return command!=CommandType.TurnOn;
         }
     }
 }
