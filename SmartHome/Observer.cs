@@ -15,9 +15,9 @@ namespace SmartHome
     }
     public class SecuritySystem : Device, IObserver
     {
-        public SecuritySystem(string name)
+        public SecuritySystem(string name):base(name)
         {
-            this.Name=name;
+            
             System.Console.WriteLine($"Creating new Security System {this.Name}");
         }
         public SecuritySystem():this("Default"){}
@@ -26,7 +26,7 @@ namespace SmartHome
             return new SecuritySystem(this.Name);
         }
 
-        public override void TurnOff()
+        /*public override void TurnOff()
         {
             Console.WriteLine($"Turning off Security System {this.Name}. ");
         }
@@ -34,7 +34,7 @@ namespace SmartHome
         public override void TurnOn()
         {
             Console.WriteLine($"Turning on Security System {this.Name}. ");
-        }
+        }*/
 
         public void Update(object ob)
         {
@@ -52,6 +52,11 @@ namespace SmartHome
         protected override void ExecuteMainFunction()
         {
             System.Console.WriteLine("Security System is waiting for events");
+        }
+
+        protected override void HandleSpecificCommand(Command command)
+        {
+            return;
         }
     }
 }

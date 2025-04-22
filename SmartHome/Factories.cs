@@ -49,7 +49,7 @@ namespace SmartHome{
         }
         public Thermostat CreateThermostat()
         {
-            return new Thermostat("Thermostat",20);
+            return new Thermostat("Thermostat",20,20);
         }
     }
 }
