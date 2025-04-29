@@ -51,7 +51,8 @@ namespace SmartHome
         public void DetectMotion()
         {            
             this.Motion=true;
-            this.NotifyObservers();            
+            this.NotifyObservers();     
+            mediator.Notify(this,"MotionDetected",null);       
         }
         protected override void ExecuteMainFunction()
         {
