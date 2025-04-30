@@ -98,6 +98,32 @@ public abstract class Device
                 _currentState?.OnEnter(this);
             }
         }
+
+        public DeviceMemento CreateMemento()
+        {
+            return new DeviceMemento(Name, CurrentState);
+        }
+
+        public void RestoreMemento(DeviceMemento memento)
+        {
+            if (memento != null)
+            {
+                Name = memento.Name;
+                CurrentState = memento.State;
+            }
+        }
+
+        public class DeviceMemento
+        {
+            public string Name { get; }
+            public DeviceState State { get; }
+
+            public DeviceMemento(string name, DeviceState state)
+            {
+                Name = name;
+                State = state;
+            }
+        }
         
 
     }

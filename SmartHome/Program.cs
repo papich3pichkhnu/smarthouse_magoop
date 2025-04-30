@@ -103,7 +103,7 @@ namespace SmartHome
             rc.ExecuteCommands();         */
 
             //Iterator, State, ChainOfResponsibilty
-            System.Console.WriteLine("--------------------------------");            
+           /* System.Console.WriteLine("--------------------------------");            
             RGBLamp rGBLamp = new RGBLamp("RGBLamp", 100, 100, null, 6000,100,100,100);
             Thermostat thermostat = new Thermostat("Thermostat",20,20);
             MotionSensor motionSensor = new MotionSensor("MotionSensor");
@@ -138,7 +138,9 @@ namespace SmartHome
 
             System.Console.WriteLine("------------");
             motionSensor.DetectMotion();
+*/
 
+            
             
             
         }

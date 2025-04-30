@@ -28,5 +28,36 @@ namespace SmartHome
             Name=name;
         }
 
+        public RoomMemento CreateMemento()
+        {
+            var deviceMementos = new List<Device.DeviceMemento>();
+            foreach (var device in _devices)
+            {
+                deviceMementos.Add(device.CreateMemento());
+            }
+            return new RoomMemento(deviceMementos);
+        }
+
+        public void RestoreMemento(RoomMemento memento)
+        {
+            if (memento != null)
+            {
+                var deviceMementos = memento.DeviceMementos;
+                for (int i = 0; i < deviceMementos.Count && i < _devices.Count; i++)
+                {
+                    _devices[i].RestoreMemento(deviceMementos[i]);
+                }
+            }
+        }
+
+        public class RoomMemento
+        {
+            public List<Device.DeviceMemento> DeviceMementos { get; }
+
+            public RoomMemento(List<Device.DeviceMemento> deviceMementos)
+            {
+                DeviceMementos = deviceMementos;
+            }
+        }
     }
 }
