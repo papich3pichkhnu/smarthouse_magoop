@@ -2,6 +2,12 @@ using System;
 namespace SmartHome{
 public abstract class Device
     {
+        protected ISmartHomeMediator mediator;
+        public void SetMediator(ISmartHomeMediator mediator)
+        {
+            this.mediator=mediator;
+            mediator.Register(this);
+        }
         public Device():this("Default")
         {
             
@@ -13,7 +19,7 @@ public abstract class Device
             CurrentState = new OffState();
 
         }
-        public void ExecuteCommand(Command command)
+        public virtual void ExecuteCommand(Command command)
         {
             System.Console.WriteLine($"Executing {command.CommandType} on device {Name}");
             if(_currentState.CanHandleCommand(command.CommandType))
@@ -30,6 +36,7 @@ public abstract class Device
                         this.RequestStatus();
                         break;
                     default:
+                        HandleSpecificCommand(command);
                         break;
                 }
             }

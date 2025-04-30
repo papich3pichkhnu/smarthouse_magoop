@@ -104,9 +104,9 @@ namespace SmartHome
 
             //Iterator, State, ChainOfResponsibilty
             System.Console.WriteLine("--------------------------------");            
-            RGBLamp rGBLamp = new RGBLamp("RGB Lamp", 100, 100, null, 6000,100,100,100);
+            RGBLamp rGBLamp = new RGBLamp("RGBLamp", 100, 100, null, 6000,100,100,100);
             Thermostat thermostat = new Thermostat("Thermostat",20,20);
-            MotionSensor motionSensor = new MotionSensor("Motion sensor");
+            MotionSensor motionSensor = new MotionSensor("MotionSensor");
             
             Room room = new Room("Living room");
             room.AddDevice(rGBLamp);
@@ -123,24 +123,21 @@ namespace SmartHome
             
             SmartHomeController smartHomeController=new SmartHomeController("Living room");
             
-            smartHomeController.AddDevice(rGBLamp);
-            smartHomeController.AddDevice(thermostat);
-            smartHomeController.AddDevice(motionSensor);
+            rGBLamp.SetMediator(smartHomeController);
+            thermostat.SetMediator(smartHomeController);
+            motionSensor.SetMediator(smartHomeController);
 
-            smartHomeController.SendCommand(CommandType.Status,"RGB Lamp");
+            smartHomeController.SendCommand(CommandType.Status,"RGBLamp");
 
             var thermostat1=smartHomeController.FindDevice("Thermostat") as Thermostat;
             thermostat1.CurrentTemperature = 22.0;
-
-            smartHomeController.SendCommand(CommandType.SetColor,"RGB Lamp",255,200,0);
             
-            System.Console.WriteLine("-----------");
-            System.Console.WriteLine("Logs:");
-            foreach(var str in smartHomeController.GetLogs())
-            {
-                System.Console.WriteLine(str);
-            }
+            smartHomeController.InterpretCommand("turn on RGBLamp and turn on thermostat and set brightness to 75% for rgblamp and set color to magenta for rgblamp");
+            System.Console.WriteLine($"RGBLamp Color({rGBLamp.Red},{rGBLamp.Green},{rGBLamp.Blue})");
+            System.Console.WriteLine($"RGBLamp brightness {rGBLamp.Brightness}%");
 
+            System.Console.WriteLine("------------");
+            motionSensor.DetectMotion();
 
             
             
