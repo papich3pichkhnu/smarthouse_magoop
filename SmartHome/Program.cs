@@ -138,9 +138,65 @@ namespace SmartHome
 
             System.Console.WriteLine("------------");
             motionSensor.DetectMotion();
-*/
+        */
 
-            
+            // Memento 
+
+RGBLamp rGBLamp = new RGBLamp("RGBLamp", 100, 100, null, 6000, 100, 100, 100);
+Thermostat thermostat = new Thermostat("Thermostat", 20, 20);
+MotionSensor motionSensor = new MotionSensor("MotionSensor");
+
+Room room = new Room("Living room");
+room.AddDevice(rGBLamp);
+room.AddDevice(thermostat);
+room.AddDevice(motionSensor);
+
+
+Caretaker<Room.RoomMemento> caretaker = new Caretaker<Room.RoomMemento>();
+
+
+caretaker.SaveState(room.CreateMemento());
+System.Console.WriteLine("Initial state saved(all off).");
+
+rGBLamp.TurnOn();
+thermostat.TurnOn();
+motionSensor.TurnOn();
+
+System.Console.WriteLine("Devices turned on.");
+
+caretaker.SaveState(room.CreateMemento());
+System.Console.WriteLine("New state saved(all on).");
+
+rGBLamp.TurnOff();
+thermostat.TurnOff();
+motionSensor.TurnOff();
+
+System.Console.WriteLine("Devices turned off.");
+caretaker.SaveState(room.CreateMemento());
+System.Console.WriteLine("New state saved(all off).");
+
+if (caretaker.CanUndo())
+{
+    var previousState = caretaker.Undo();
+    room.RestoreMemento(previousState);
+    System.Console.WriteLine("State restored to previous (undo).");
+}
+
+
+if (caretaker.CanUndo())
+{
+    var initialState = caretaker.Undo();
+    room.RestoreMemento(initialState);
+    System.Console.WriteLine("State restored to initial (undo).");
+}
+
+
+if (caretaker.CanRedo())
+{
+    var redoState = caretaker.Redo();
+    room.RestoreMemento(redoState);
+    System.Console.WriteLine("State redone.");
+}
             
             
         }

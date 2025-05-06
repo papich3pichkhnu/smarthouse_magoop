@@ -22,6 +22,7 @@ namespace SmartHome
             if (_currentIndex <= 0)
             {
                 return default(TMemento);
+                
             }
             _currentIndex--;
             return _mementos[_currentIndex];
