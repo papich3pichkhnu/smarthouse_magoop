@@ -19,6 +19,12 @@ public abstract class Device
             CurrentState = new OffState();
 
         }
+
+        public virtual void Accept(ISmartHomeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
         public virtual void ExecuteCommand(Command command)
         {
             System.Console.WriteLine($"Executing {command.CommandType} on device {Name}");

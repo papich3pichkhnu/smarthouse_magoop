@@ -28,6 +28,16 @@ namespace SmartHome
             Name=name;
         }
 
+        // Added Accept method for Visitor pattern
+        public void Accept(ISmartHomeVisitor visitor)
+        {
+            visitor.Visit(this);
+            foreach(var device in _devices)
+            {
+                device.Accept(visitor);
+            }
+        }
+
         public RoomMemento CreateMemento()
         {
             var deviceMementos = new List<Device.DeviceMemento>();
