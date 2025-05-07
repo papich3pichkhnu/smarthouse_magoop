@@ -42,6 +42,30 @@ namespace SmartHome
         }
 
     }
+    
+    public class SecurityCommandProcessor : CommandProcessor
+    {
+        public SecurityCommandProcessor(SmartHomeController controller) : base(controller) { }
+        
+        protected override bool CanProcessCommand(Command command)
+        {
+            if (command.CommandType == CommandType.EnableSecurityMode || 
+                command.CommandType == CommandType.DisableSecurityMode)
+            {
+                if (command.CommandType == CommandType.EnableSecurityMode)
+                {
+                    _controller.EnableSecurityMode();
+                }
+                else
+                {
+                    _controller.DisableSecurityMode();
+                }
+                return true;
+            }
+            return false;
+        }
+    }
+    
     public class FunctionalCommandProcessor : CommandProcessor
     {
         public FunctionalCommandProcessor(SmartHomeController controller) : base(controller) { }
@@ -49,7 +73,9 @@ namespace SmartHome
         {
             if (command.CommandType != CommandType.TurnOn &&
                command.CommandType != CommandType.TurnOff &&
-               command.CommandType != CommandType.Status)
+               command.CommandType != CommandType.Status &&
+               command.CommandType != CommandType.EnableSecurityMode &&
+               command.CommandType != CommandType.DisableSecurityMode)
             {
                 var device = _controller.FindDevice(command.targetName);
                 if (device != null)
@@ -88,18 +114,22 @@ namespace SmartHome
         private CommandProcessor _commandChain;
         private Room room;
         private List<String> logs = new List<string>();
+        private SecurityManager _securityManager;
+        
         public SmartHomeController(string roomName)
 
         {
             room = new Room(roomName);
+            _securityManager = new SecurityManager();
 
             var loggerProcessor = new LoggerProcessor(this);
             var statusProcessor = new StatusProcessor(this);
+            var securityProcessor = new SecurityCommandProcessor(this);
             var functionProcessor = new FunctionalCommandProcessor(this);
             _commandChain = loggerProcessor;
-            loggerProcessor.SetNext(statusProcessor).SetNext(functionProcessor);
-
+            loggerProcessor.SetNext(statusProcessor).SetNext(securityProcessor).SetNext(functionProcessor);
         }
+        
         public void AddDevice(Device device)
         {
             string deviceType = "none";
@@ -108,8 +138,16 @@ namespace SmartHome
             else if (device is Thermostat) deviceType = "thermostat";
             room.AddDevice(device);
             room.AddDeviceByType(device, deviceType);
+            
+            // Register motion sensors with the security manager
+            if (device is MotionSensor motionSensor)
+            {
+                _securityManager.RegisterMotionSensor(motionSensor);
+            }
+            
             System.Console.WriteLine($"Added {device.Name} to room {room.Name}");
         }
+        
         public Device FindDevice(string name)
         {
             name = name.ToLower();
@@ -125,29 +163,41 @@ namespace SmartHome
             System.Console.WriteLine($"Device {name} not found");
             return null;
         }
+        
         public void ExecuteCommand(Command command)
         {
             System.Console.WriteLine($"Executing command {command.CommandType} on {command.targetName}");
             _commandChain.ProcessCommand(command);
         }
 
-
-
+        public void EnableSecurityMode()
+        {
+            _securityManager.EnableSecurityMode(this, room);
+        }
+        
+        public void DisableSecurityMode()
+        {
+            _securityManager.DisableSecurityMode(room);
+        }
+        
         public void SendCommand(CommandType commandType, string device, params object[] parameters)
         {
             var command = new Command(commandType, device, parameters);
             ExecuteCommand(command);
         }
+        
         public void LogCommand(Command command)
         {
             var logstr = $"command {command.CommandType} on {command.targetName}";
             System.Console.WriteLine($"Logging {logstr}");
             logs.Add(logstr);
         }
+        
         public List<string> GetLogs()
         {
             return logs;
         }
+        
         public void InterpretCommand(string command)
         {
             CommandParser parser = new CommandParser();
@@ -170,11 +220,13 @@ namespace SmartHome
                 Console.WriteLine($"Error interpreting command: {ex.Message}");
             }
         }
+        
         public void Register(Device device)
         {
             AddDevice(device);
             
         }
+        
         public void Notify(Device sender, string eventType, object eventData)
         {
             switch (eventType)
@@ -187,21 +239,110 @@ namespace SmartHome
                     break;
             }
         }
+        
         private void HandleMotionDetected(Device sender, object eventData)
         {
-            if(room.getDevicesByTypeList().ContainsKey("lamp"))
+            if (room.getDevicesByTypeList().ContainsKey("lamp"))
             foreach (var device in room.getDevicesByTypeList()["lamp"])
             {
                 ExecuteCommand(new Command(CommandType.TurnOn, device.Name));
             }
             
+            // If security mode is enabled, also notify the security manager
+            if (_securityManager.IsEnabled)
+            {
+                _securityManager.OnMotionDetected(sender, eventData);
+            }
         }
+        
         private void HandleTemperatureChanged(Device sender, object eventData)
         {
             if(room.getDevicesByTypeList().ContainsKey("lamp"))
             foreach(var device in room.getDevicesByTypeList()["thermostat"])
             {
                 ExecuteCommand(new Command(CommandType.TurnOff,device.Name,eventData));
+            }
+        }
+        
+
+        private class SecurityManager
+        {
+            private readonly Dictionary<string, Room.RoomMemento> _securityStates;
+            private readonly List<MotionSensor> _motionSensors;
+            
+            public SecurityManager()
+            {
+                _securityStates = new Dictionary<string, Room.RoomMemento>();
+                _motionSensors = new List<MotionSensor>();
+                IsEnabled = false;
+            }
+            
+            public bool IsEnabled { get; private set; }
+            
+            public void RegisterMotionSensor(MotionSensor sensor)
+            {
+                if (!_motionSensors.Contains(sensor))
+                {
+                    _motionSensors.Add(sensor);
+                }
+            }
+            
+            public void EnableSecurityMode(SmartHomeController controller, Room room)
+            {
+                if (IsEnabled)
+                {
+                    Console.WriteLine("Security mode is already enabled");
+                    return;
+                }
+                
+
+                var memento = room.CreateMemento();
+                _securityStates[room.Name] = memento;
+                
+
+                foreach (var device in room.GetDevices())
+                {
+                    if (device is Lamp)
+                    {
+                        device.TurnOff();
+                    }
+                    
+
+                    if (device is MotionSensor sensor)
+                    {
+                        sensor.TurnOn();
+                    }
+                }
+                
+                IsEnabled = true;
+                Console.WriteLine("Security mode enabled");
+            }
+            
+            public void DisableSecurityMode(Room room)
+            {
+                if (!IsEnabled)
+                {
+                    Console.WriteLine("Security mode is already disabled");
+                    return;
+                }
+                
+
+                if (_securityStates.TryGetValue(room.Name, out var memento))
+                {
+                    room.RestoreMemento(memento);
+                }
+                
+                IsEnabled = false;
+                Console.WriteLine("Security mode disabled");
+            }
+            
+            public void OnMotionDetected(Device sender, object eventData)
+            {
+                if (IsEnabled && (bool)eventData)
+                {
+                    Console.WriteLine("SECURITY ALERT: Motion detected while security system is enabled!");
+                    
+                }
             }
         }
     }

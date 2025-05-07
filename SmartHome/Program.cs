@@ -142,7 +142,7 @@ namespace SmartHome
 
             // Memento 
 
-            RGBLamp rGBLamp = new RGBLamp("RGBLamp", 100, 100, null, 6000, 100, 100, 100);
+            /*RGBLamp rGBLamp = new RGBLamp("RGBLamp", 100, 100, null, 6000, 100, 100, 100);
             Thermostat thermostat = new Thermostat("Thermostat", 20, 20);
             MotionSensor motionSensor = new MotionSensor("MotionSensor");
 
@@ -198,9 +198,9 @@ namespace SmartHome
                 System.Console.WriteLine("State redone.");
 
                 
-            }
+            }*/
 
-            System.Console.WriteLine("----------------visitor----------------");
+            /*System.Console.WriteLine("----------------visitor----------------");
 
             Room livingRoom = new Room("Living Room");
             
@@ -246,21 +246,68 @@ namespace SmartHome
             LEDLamp invalidLamp = new LEDLamp("Invalid Lamp", 150, 100, new NormalMode(), 6000);
             invalidLamp.Brightness = 120; 
             Room testRoom = new Room("");
-            testRoom.AddDevice(invalidLamp);
+            testRoom.AddDevice(invalidLamp);*/
             
-            var validatorVisitor2 = new ConfigurationValidatorVisitor();
-            testRoom.Accept(validatorVisitor2);
+            // Facade 
+            Console.WriteLine("\n====== Facade  ======\n");
             
-            if (!validatorVisitor2.IsValid())
-            {
-                Console.WriteLine("Invalid configuration detected:");
-                foreach (var error in validatorVisitor2.GetValidationErrors())
-                {
-                    Console.WriteLine($"- {error}");
-                }
-            }
+            SmartHomeSystem smartHome = new SmartHomeSystem("Living Room");
             
-        }
+            smartHome.AddRoom("Kitchen");
+            smartHome.AddRoom("Bedroom");
+            
+            LEDLamp livingRoomLight = new LEDLamp("Living Room Light", 60, 100, new NormalMode(), 5000);
+            RGBLamp bedroomLight = new RGBLamp("Bedroom Light", 40, 80, new NormalMode(), 4000, 255, 255, 255);
+            LEDLamp kitchenLight = new LEDLamp("Kitchen Light", 70, 100, new NormalMode(), 6000);
+            Thermostat livingRoomThermostat = new Thermostat("Living Room Thermostat", 22, 22);
+            MotionSensor entranceMotionSensor = new MotionSensor("Entrance Sensor");
+            
+            smartHome.AddDevice("Living Room", livingRoomLight);
+            smartHome.AddDevice("Living Room", livingRoomThermostat);
+            smartHome.AddDevice("Living Room", entranceMotionSensor);
+            smartHome.AddDevice("Bedroom", bedroomLight);
+            smartHome.AddDevice("Kitchen", kitchenLight);
 
+
+            smartHome.TurnOnAllLights();
+
+            smartHome.SetAllLightsBrightness(75);
+
+            smartHome.SetTemperature("Living Room", 24.5);
+
+            Console.WriteLine("\n--- Status Report ---");
+            string statusReport = smartHome.GetStatusReport();
+            Console.WriteLine(statusReport);
+            
+            smartHome.SaveCurrentState("EveningMode");
+            
+
+            smartHome.ExecuteCommand("jarvis turn on security mode");
+            
+            entranceMotionSensor.DetectMotion();
+            
+            smartHome.ExecuteCommand("jarvis turn off security mode");
+            
+            smartHome.ExecuteCommand("turn on kitchen light and set brightness to 50%");
+            
+
+            var energyReport = smartHome.GetEnergyConsumptionReport();
+            double totalConsumption = 0;
+            foreach (var device in energyReport)
+            {
+                Console.WriteLine($"{device.Key}: {device.Value:F2}W");
+                totalConsumption += device.Value;
+            }
+            Console.WriteLine($"Total Energy Consumption: {totalConsumption:F2}W");
+
+            Console.WriteLine("\n--- Testing Security Mode with Direct Methods ---");
+            smartHome.EnableSecurityMode();
+            entranceMotionSensor.DetectMotion();
+            smartHome.DisableSecurityMode();
+            
+            Console.WriteLine("\n--- Restore Saved State ---");
+            smartHome.RestoreState("EveningMode");
+
+        }
     }
 }

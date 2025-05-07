@@ -33,7 +33,7 @@ namespace SmartHome{
                         CurrentState=new ActiveState("heating");
                     else if (_currentTemperature > _targetTemperature)
                         CurrentState = new ActiveState("cooling");
-                    mediator.Notify(this,"TemperatureChanged",null);
+                    mediator.Notify(this,"TemperatureChanged",_currentTemperature);
                 }
             }
         }}
