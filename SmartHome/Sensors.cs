@@ -24,6 +24,12 @@ namespace SmartHome
             return new MotionSensor(this.Name);
         }
 
+        // Override Accept method for Visitor pattern
+        public override void Accept(ISmartHomeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
         /*public override void TurnOff()
         {            
             Console.WriteLine($"Turning off Motion sensor {this.Name}. ");

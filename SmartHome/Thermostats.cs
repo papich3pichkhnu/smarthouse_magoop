@@ -45,6 +45,13 @@ namespace SmartHome{
             
             
         }
+
+        // Override Accept method for Visitor pattern
+        public override void Accept(ISmartHomeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
         /*public override void TurnOn()
         {
             Console.WriteLine($"Turning on {Name}. ");

@@ -29,7 +29,7 @@ namespace SmartHome
                 {
                     CurrentState=new ActiveState("dimming");
                 }
-                System.Console.WriteLine($"Light {Name} brightness set to {value}%");
+                System.Console.WriteLine($"Light {Name} brightness set to {_brightness}%");
                 
                 //Console.WriteLine($"Brightness set to {_brightness}.");
             }
@@ -47,6 +47,13 @@ namespace SmartHome
             this.OperationStrategy=lampOperationStrategy;
 
         }
+
+
+        public override void Accept(ISmartHomeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
         /*public override void TurnOff()
         {
             Console.WriteLine($"Turning off {Power} Watt {Name} lamp. Brightness set at {Brightness}");

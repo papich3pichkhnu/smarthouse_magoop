@@ -3,8 +3,8 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 
 namespace SmartHome
-{ 
-    
+{
+
     public class MainProgram
     {
         public static void Main(string[] args)
@@ -80,7 +80,7 @@ namespace SmartHome
             ICommand mc = new MacroCommand(commands);
             RemoteController rc=new RemoteController();
             rc.AddCommand(mc);
-            rc.ExecuteCommands();         */   
+            rc.ExecuteCommands();         */
 
             //TemplateMethod
             /*System.Console.WriteLine("--------------------------------");
@@ -103,43 +103,162 @@ namespace SmartHome
             rc.ExecuteCommands();         */
 
             //Iterator, State, ChainOfResponsibilty
-            System.Console.WriteLine("--------------------------------");            
-            RGBLamp rGBLamp = new RGBLamp("RGBLamp", 100, 100, null, 6000,100,100,100);
-            Thermostat thermostat = new Thermostat("Thermostat",20,20);
+            /* System.Console.WriteLine("--------------------------------");            
+             RGBLamp rGBLamp = new RGBLamp("RGBLamp", 100, 100, null, 6000,100,100,100);
+             Thermostat thermostat = new Thermostat("Thermostat",20,20);
+             MotionSensor motionSensor = new MotionSensor("MotionSensor");
+
+             Room room = new Room("Living room");
+             room.AddDevice(rGBLamp);
+             room.AddDevice(thermostat);
+             room.AddDevice(motionSensor);
+
+             var iterator=room.CreateIterator();
+             System.Console.WriteLine($"devices in room {room.Name}");
+             while(iterator.HasNext())
+             {
+                 var device = iterator.Next();
+                 device.TurnOn();
+             }
+
+             SmartHomeController smartHomeController=new SmartHomeController("Living room");
+
+             rGBLamp.SetMediator(smartHomeController);
+             thermostat.SetMediator(smartHomeController);
+             motionSensor.SetMediator(smartHomeController);
+
+             smartHomeController.SendCommand(CommandType.Status,"RGBLamp");
+
+             var thermostat1=smartHomeController.FindDevice("Thermostat") as Thermostat;
+             thermostat1.CurrentTemperature = 22.0;
+
+             smartHomeController.InterpretCommand("turn on RGBLamp and turn on thermostat and set brightness to 75% for rgblamp and set color to magenta for rgblamp");
+             System.Console.WriteLine($"RGBLamp Color({rGBLamp.Red},{rGBLamp.Green},{rGBLamp.Blue})");
+             System.Console.WriteLine($"RGBLamp brightness {rGBLamp.Brightness}%");
+
+             System.Console.WriteLine("------------");
+             motionSensor.DetectMotion();
+         */
+
+            // Memento 
+
+            RGBLamp rGBLamp = new RGBLamp("RGBLamp", 100, 100, null, 6000, 100, 100, 100);
+            Thermostat thermostat = new Thermostat("Thermostat", 20, 20);
             MotionSensor motionSensor = new MotionSensor("MotionSensor");
-            
+
             Room room = new Room("Living room");
             room.AddDevice(rGBLamp);
             room.AddDevice(thermostat);
             room.AddDevice(motionSensor);
 
-            var iterator=room.CreateIterator();
-            System.Console.WriteLine($"devices in room {room.Name}");
-            while(iterator.HasNext())
+
+            SmartHomeHistory<Room.RoomMemento> caretaker = new SmartHomeHistory<Room.RoomMemento>();
+
+
+            caretaker.SaveState(room.CreateMemento());
+            System.Console.WriteLine("Initial state saved(all off).");
+
+            rGBLamp.TurnOn();
+            thermostat.TurnOn();
+            motionSensor.TurnOn();
+
+            System.Console.WriteLine("Devices turned on.");
+
+            caretaker.SaveState(room.CreateMemento());
+            System.Console.WriteLine("New state saved(all on).");
+
+            rGBLamp.TurnOff();
+            thermostat.TurnOff();
+            motionSensor.TurnOff();
+
+            System.Console.WriteLine("Devices turned off.");
+            caretaker.SaveState(room.CreateMemento());
+            System.Console.WriteLine("New state saved(all off).");
+
+            if (caretaker.CanUndo())
             {
-                var device = iterator.Next();
-                device.TurnOn();
+                var previousState = caretaker.Undo();
+                room.RestoreMemento(previousState);
+                System.Console.WriteLine("State restored to previous (undo).");
+            }
+
+
+            if (caretaker.CanUndo())
+            {
+                var initialState = caretaker.Undo();
+                room.RestoreMemento(initialState);
+                System.Console.WriteLine("State restored to initial (undo).");
+            }
+
+
+            if (caretaker.CanRedo())
+            {
+                var redoState = caretaker.Redo();
+                room.RestoreMemento(redoState);
+                System.Console.WriteLine("State redone.");
+
+                
+            }
+
+            System.Console.WriteLine("----------------visitor----------------");
+
+            Room livingRoom = new Room("Living Room");
+            
+            LEDLamp mainLight = new LEDLamp("Main Light", 100, 100, new NormalMode(), 6000);
+            livingRoom.AddDevice(mainLight);
+            
+            mainLight.TurnOn();
+            
+            Console.WriteLine("\n=== Status Report ===");
+            var statusVisitor = new StatusReportVisitor();
+            livingRoom.Accept(statusVisitor);
+            string report = statusVisitor.GetReport();
+            Console.WriteLine(report);
+            
+            Console.WriteLine("\n=== Energy Consumption Report ===");
+            var energyVisitor = new EnergyConsumptionVisitor();
+            livingRoom.Accept(energyVisitor);
+            double totalConsumption = energyVisitor.GetTotalConsumption();
+            Console.WriteLine($"Total Energy Consumption: {totalConsumption:F2}W");
+            foreach (var device in energyVisitor.GetDeviceConsumption())
+            {
+                Console.WriteLine($"{device.Key}: {device.Value:F2}W");
             }
             
-            SmartHomeController smartHomeController=new SmartHomeController("Living room");
+            Console.WriteLine("\n=== Configuration Validation ===");
+            var validatorVisitor = new ConfigurationValidatorVisitor();
+            livingRoom.Accept(validatorVisitor);
             
-            rGBLamp.SetMediator(smartHomeController);
-            thermostat.SetMediator(smartHomeController);
-            motionSensor.SetMediator(smartHomeController);
-
-            smartHomeController.SendCommand(CommandType.Status,"RGBLamp");
-
-            var thermostat1=smartHomeController.FindDevice("Thermostat") as Thermostat;
-            thermostat1.CurrentTemperature = 22.0;
+            if (validatorVisitor.IsValid())
+            {
+                Console.WriteLine("All device configurations are valid!");
+            }
+            else
+            {
+                Console.WriteLine("Configuration issues found:");
+                foreach (var error in validatorVisitor.GetValidationErrors())
+                {
+                    Console.WriteLine($"- {error}");
+                }
+            }
             
-            smartHomeController.InterpretCommand("turn on RGBLamp and turn on thermostat and set brightness to 75% for rgblamp and set color to magenta for rgblamp");
-            System.Console.WriteLine($"RGBLamp Color({rGBLamp.Red},{rGBLamp.Green},{rGBLamp.Blue})");
-            System.Console.WriteLine($"RGBLamp brightness {rGBLamp.Brightness}%");
-
-            System.Console.WriteLine("------------");
-            motionSensor.DetectMotion();
-
+            Console.WriteLine("\n=== Testing Invalid Configuration ===");
+            LEDLamp invalidLamp = new LEDLamp("Invalid Lamp", 150, 100, new NormalMode(), 6000);
+            invalidLamp.Brightness = 120; 
+            Room testRoom = new Room("");
+            testRoom.AddDevice(invalidLamp);
             
+            var validatorVisitor2 = new ConfigurationValidatorVisitor();
+            testRoom.Accept(validatorVisitor2);
+            
+            if (!validatorVisitor2.IsValid())
+            {
+                Console.WriteLine("Invalid configuration detected:");
+                foreach (var error in validatorVisitor2.GetValidationErrors())
+                {
+                    Console.WriteLine($"- {error}");
+                }
+            }
             
         }
 

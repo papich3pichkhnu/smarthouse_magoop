@@ -19,6 +19,12 @@ public abstract class Device
             CurrentState = new OffState();
 
         }
+
+        public virtual void Accept(ISmartHomeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
         public virtual void ExecuteCommand(Command command)
         {
             System.Console.WriteLine($"Executing {command.CommandType} on device {Name}");
@@ -96,6 +102,32 @@ public abstract class Device
                 _currentState?.OnExit(this);
                 _currentState=value;
                 _currentState?.OnEnter(this);
+            }
+        }
+
+        public DeviceMemento CreateMemento()
+        {
+            return new DeviceMemento(Name, CurrentState);
+        }
+
+        public void RestoreMemento(DeviceMemento memento)
+        {
+            if (memento != null)
+            {
+                Name = memento.Name;
+                CurrentState = memento.State;
+            }
+        }
+
+        public class DeviceMemento
+        {
+            public string Name { get; }
+            public DeviceState State { get; }
+
+            public DeviceMemento(string name, DeviceState state)
+            {
+                Name = name;
+                State = state;
             }
         }
         
