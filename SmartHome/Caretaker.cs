@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace SmartHome
 {
-    public class Caretaker<TMemento>
+    public class SmartHomeHistory<TMemento>
     {
         private readonly List<TMemento> _mementos = new List<TMemento>();
         private int _currentIndex = -1;

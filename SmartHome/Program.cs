@@ -152,7 +152,7 @@ namespace SmartHome
             room.AddDevice(motionSensor);
 
 
-            Caretaker<Room.RoomMemento> caretaker = new Caretaker<Room.RoomMemento>();
+            SmartHomeHistory<Room.RoomMemento> caretaker = new SmartHomeHistory<Room.RoomMemento>();
 
 
             caretaker.SaveState(room.CreateMemento());
