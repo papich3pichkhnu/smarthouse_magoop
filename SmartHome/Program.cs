@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Collections.Generic;
 
 namespace SmartHome
 {
@@ -307,7 +308,110 @@ namespace SmartHome
             
             Console.WriteLine("\n--- Restore Saved State ---");
             smartHome.RestoreState("EveningMode");
-
+            
+            Console.WriteLine("\n====== Proxy Pattern Demo ======\n");
+            
+            Console.WriteLine("\n--- Adding Remote Device ---");
+            smartHome.AddRemoteDevice("RemoteKitchenLight", "Kitchen");
+            
+            Console.WriteLine("\n--- Adding Existing Device with Proxy ---");
+            LEDLamp securedLamp = new LEDLamp("Secured Light", 60, 100, new NormalMode(), 5000);
+            smartHome.AddDeviceWithProxy("Living Room", securedLamp, AccessLevel.Standard);
+            
+            Console.WriteLine("\n--- Basic Remote Operations ---");
+            var kitchen = smartHome.GetRoom("Kitchen");
+            IDeviceControl remoteKitchenLight = null;
+            foreach (var device in kitchen.GetDevices())
+            {
+                if (device.Name.Contains("RemoteKitchenLight"))
+                {
+                    remoteKitchenLight = device;
+                    break;
+                }
+            }
+            if (remoteKitchenLight != null)
+            {
+                remoteKitchenLight.TurnOn();
+                remoteKitchenLight.TurnOff();
+            }
+            
+            Console.WriteLine("\n--- Standard Access Level Operations ---");
+            var livingRoom = smartHome.GetRoom("Living Room");
+            IDeviceControl securedDevice = null;
+            foreach (var device in livingRoom.GetDevices())
+            {
+                if (device.Name.Contains("Secured Light"))
+                {
+                    securedDevice = device;
+                    break;
+                }
+            }
+            if (securedDevice != null)
+            {
+                var brightnessCommand = new Command(CommandType.SetBrightness, "Secured Light", 80);
+                securedDevice.ExecuteCommand(brightnessCommand);
+            }
+            
+            Console.WriteLine("\n--- Unauthorized Operations ---");
+            if (securedDevice != null)
+            {
+                var securityCommand = new Command(CommandType.EnableSecurityMode, "Secured Light");
+                securedDevice.ExecuteCommand(securityCommand);
+            }
+            
+            Console.WriteLine("\n--- Operations with Elevated Privileges ---");
+            smartHome.SetRemoteDeviceAccessLevel("Secured Light", AccessLevel.Admin);
+            if (securedDevice != null)
+            {
+                var securityCommand = new Command(CommandType.EnableSecurityMode, "Secured Light");
+                securedDevice.ExecuteCommand(securityCommand);
+            }
+            
+            Console.WriteLine("\n--- Lazy Loading of Remote Device ---");
+            if (remoteKitchenLight != null)
+            {
+                var temperatureCommand = new Command(CommandType.SetTemperature, "RemoteKitchenLight", 22.5);
+                remoteKitchenLight.ExecuteCommand(temperatureCommand);
+            }
+            
+            Console.WriteLine("\n====== Bridge Pattern Demo ======\n");
+            
+            SmartHomeController controller = smartHome.Controller;
+            
+            var localImpl = new LocalControlImplementation(smartHome);
+            var remoteImpl = new RemoteControlImplementation("https://api.smarthome.example.com", "api-key-12345");
+            
+            Console.WriteLine("\n--- Local Control with Different Interfaces ---");
+            var voiceControl = new VoiceControl(localImpl);
+            var mobileApp = new MobileAppControl(localImpl);
+            
+            voiceControl.Initialize();
+            mobileApp.Initialize();            
+            
+            Console.WriteLine("\n--- Voice Control Commands ---");
+            voiceControl.ProcessNaturalLanguageCommand("turn on living room light");
+            voiceControl.ProcessNaturalLanguageCommand("set brightness living room light to 75");
+            voiceControl.ProcessNaturalLanguageCommand("status living room thermostat");
+            
+            Console.WriteLine("\n--- Mobile App Commands ---");
+            var devices = mobileApp.GetAvailableDevices();
+            Console.WriteLine($"Available devices: {string.Join(", ", devices)}");
+            mobileApp.ExecuteAppCommand("Kitchen Light", "TurnOn");
+            mobileApp.ExecuteAppCommand("Kitchen Light", "SetBrightness", 80);
+            
+            Console.WriteLine("\n--- Switching to Remote Implementation ---");
+            
+            var remoteVoiceControl = new VoiceControl(remoteImpl);
+            remoteVoiceControl.Initialize();
+            
+            Console.WriteLine("\n--- Remote Voice Control Commands ---");
+            remoteVoiceControl.ProcessNaturalLanguageCommand("turn on living room light");
+            remoteVoiceControl.ProcessNaturalLanguageCommand("set temperature living room thermostat to 23.5");
+            
+            Console.WriteLine("\n--- Shutting Down All Interfaces ---");
+            voiceControl.Shutdown();
+            mobileApp.Shutdown();
+            remoteVoiceControl.Shutdown();
         }
     }
 }

@@ -16,11 +16,11 @@ namespace SmartHome
             Controller = controller;
             Variables = new Dictionary<string, object>();
         }
-        public Device FindDevice(string deviceName)
+        public virtual IDeviceControl FindDevice(string deviceName)
         {
-            return Controller.FindDevice(deviceName);
+            return Controller.FindIDevice(deviceName);
         }
-        public void ExecuteCommand(Command command)
+        public virtual void ExecuteCommand(Command command)
         {
             Controller.ExecuteCommand(command);
         }
@@ -56,7 +56,7 @@ namespace SmartHome
         {
             if (context.Variables.ContainsKey("currentDevice"))
             {
-                var device = context.Variables["currentDevice"] as Device;
+                var device = context.Variables["currentDevice"] as IDeviceControl;
                 if (device != null)
                 {
                     var command = new Command(CommandType.TurnOn, device.Name);
@@ -73,7 +73,7 @@ namespace SmartHome
         {
             if (context.Variables.ContainsKey("currentDevice"))
             {
-                var device = context.Variables["currentDevice"] as Device;
+                var device = context.Variables["currentDevice"] as IDeviceControl;
                 if (device != null)
                 {
                     var command = new Command(CommandType.TurnOff, device.Name);
@@ -115,7 +115,7 @@ namespace SmartHome
         {
             if (context.Variables.ContainsKey("currentDevice"))
             {
-                var device = context.Variables["currentDevice"] as Device;
+                var device = context.Variables["currentDevice"] as IDeviceControl;
                 if (device != null)
                 {
                     var command = new Command(CommandType.SetBrightness, device.Name, brightness);
@@ -143,7 +143,7 @@ namespace SmartHome
         {
             if (context.Variables.ContainsKey("currentDevice"))
             {
-                var device = context.Variables["currentDevice"] as Device;
+                var device = context.Variables["currentDevice"] as IDeviceControl;
                 if (device != null)
                 {
                     var command = new Command(CommandType.SetColor, device.Name, red, green, blue);
@@ -166,7 +166,7 @@ namespace SmartHome
         {
             if (context.Variables.ContainsKey("currentDevice"))
             {
-                var device = context.Variables["currentDevice"] as Device;
+                var device = context.Variables["currentDevice"] as IDeviceControl;
                 if (device != null)
                 {
                     var command = new Command(CommandType.SetTemperature, device.Name, temperature);

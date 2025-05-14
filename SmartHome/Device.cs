@@ -1,12 +1,12 @@
 using System;
 namespace SmartHome{
-public abstract class Device
+public abstract class Device : IDeviceControl
     {
         protected ISmartHomeMediator mediator;
         public void SetMediator(ISmartHomeMediator mediator)
         {
-            this.mediator=mediator;
-            mediator.Register(this);
+            this.mediator = mediator;
+            
         }
         public Device():this("Default")
         {

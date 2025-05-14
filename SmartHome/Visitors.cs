@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace SmartHome
 {
-    // Enhanced visitor interface with specific device type visits
     public interface ISmartHomeVisitor
     {
         void Visit(Room room);
@@ -13,7 +12,6 @@ namespace SmartHome
         void Visit(Thermostat thermostat);
     }
 
-    // Visitor for generating detailed status reports
     public class StatusReportVisitor : ISmartHomeVisitor
     {
         private List<string> _report = new List<string>();
@@ -58,7 +56,6 @@ namespace SmartHome
         }
     }
 
-    // Visitor for calculating energy consumption
     public class EnergyConsumptionVisitor : ISmartHomeVisitor
     {
         private double _totalConsumption = 0;
@@ -66,12 +63,10 @@ namespace SmartHome
 
         public void Visit(Room room)
         {
-            // Room itself doesn't consume energy
         }
 
         public void Visit(Device device)
         {
-            // Base device doesn't consume energy
         }
 
         public void Visit(Lamp lamp)
@@ -86,8 +81,7 @@ namespace SmartHome
 
         public void Visit(MotionSensor sensor)
         {
-            // Motion sensors typically consume very little power
-            const double SENSOR_POWER = 0.5; // 0.5W
+            const double SENSOR_POWER = 0.5; 
             if (sensor.CurrentState is OnState)
             {
                 _totalConsumption += SENSOR_POWER;
@@ -97,8 +91,7 @@ namespace SmartHome
 
         public void Visit(Thermostat thermostat)
         {
-            // Thermostat itself doesn't consume significant power
-            // It controls other devices that do
+            
         }
 
         public double GetTotalConsumption()
@@ -112,7 +105,6 @@ namespace SmartHome
         }
     }
 
-    // Visitor for validating device configurations
     public class ConfigurationValidatorVisitor : ISmartHomeVisitor
     {
         private List<string> _validationErrors = new List<string>();
@@ -151,7 +143,6 @@ namespace SmartHome
         public void Visit(MotionSensor sensor)
         {
             Visit((Device)sensor);
-            // Add motion sensor specific validations if needed
         }
 
         public void Visit(Thermostat thermostat)

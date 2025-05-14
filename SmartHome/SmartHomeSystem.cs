@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SmartHome
 {
@@ -7,71 +8,99 @@ namespace SmartHome
     public class SmartHomeSystem
     {
         private readonly SmartHomeController _controller;
-        private readonly Dictionary<string, Room> _rooms;
-        private readonly SmartHomeHistory<Room.RoomMemento> _stateHistory;
-        private readonly Dictionary<string, Room.RoomMemento> _namedStates;
+        private readonly SmartHomeHistory<SmartHomeMemento> _stateHistory;
+        private readonly Dictionary<string, SmartHomeMemento> _namedStates;
         private readonly SecurityManager _securityManager;
+        private readonly List<RemoteDeviceProxy> _remoteDevices;
+        private readonly string _systemAccessToken;
+        
+        public SmartHomeController Controller => _controller;
         
         public SmartHomeSystem(string mainRoomName = "Living Room")
         {
             _controller = new SmartHomeController(mainRoomName);
-            _rooms = new Dictionary<string, Room>
-            {
-                { mainRoomName, new Room(mainRoomName) }
-            };
-            _stateHistory = new SmartHomeHistory<Room.RoomMemento>();
-            _namedStates = new Dictionary<string, Room.RoomMemento>();
+            _stateHistory = new SmartHomeHistory<SmartHomeMemento>();
+            _namedStates = new Dictionary<string, SmartHomeMemento>();
             _securityManager = new SecurityManager();
+            _remoteDevices = new List<RemoteDeviceProxy>();
+            _systemAccessToken = GenerateSystemAccessToken();
+        }
+        
+        private string GenerateSystemAccessToken()
+        {
+            return Guid.NewGuid().ToString("N");
         }
         
         public void AddRoom(string roomName)
         {
-            if (!_rooms.ContainsKey(roomName))
-            {
-                _rooms[roomName] = new Room(roomName);
-                Console.WriteLine($"Room '{roomName}' added to the smart home system");
-            }
-            else
-            {
-                Console.WriteLine($"Room '{roomName}' already exists");
-            }
+            _controller.AddRoom(roomName);
         }
         
         public Room GetRoom(string roomName)
         {
-            if (_rooms.ContainsKey(roomName))
-            {
-                return _rooms[roomName];
-            }
-            
-            Console.WriteLine($"Room '{roomName}' not found");
-            return null;
+            return _controller.GetRoom(roomName);
         }
         
+        public void AddRemoteDevice(string deviceId, string roomName, AccessLevel initialAccessLevel = AccessLevel.Basic)
+        {
+            var room = _controller.GetRoom(roomName);
+            if (room == null)
+            {
+                Console.WriteLine($"Room '{roomName}' not found. Remote device not added.");
+                return;
+            }
+            
+            var remoteDeviceProxy = new RemoteDeviceProxy(deviceId, _systemAccessToken);
+            remoteDeviceProxy.SetAccessLevel(initialAccessLevel);
+            
+            _remoteDevices.Add(remoteDeviceProxy);
+            
+            _controller.AddDevice(remoteDeviceProxy, roomName);
+            
+            Console.WriteLine($"Remote device '{deviceId}' registered and will be connected when needed");
+        }
+        
+        public void AddDeviceWithProxy(string roomName, Device device, AccessLevel accessLevel = AccessLevel.Standard)
+        {
+            var room = _controller.GetRoom(roomName);
+            if (room == null)
+            {
+                Console.WriteLine($"Room '{roomName}' not found. Device not added.");
+                return;
+            }
+            
+            var remoteDeviceProxy = new RemoteDeviceProxy(device, _systemAccessToken);
+            remoteDeviceProxy.SetAccessLevel(accessLevel);
+            
+            _remoteDevices.Add(remoteDeviceProxy);
+            _controller.AddDevice(remoteDeviceProxy, roomName);
+            
+            Console.WriteLine($"Device '{device.Name}' added to room '{roomName}' with proxy access control");
+        }
 
         public void AddDevice(string roomName, Device device)
         {
-            if (_rooms.ContainsKey(roomName))
+            _controller.AddDevice(device, roomName);
+            Console.WriteLine($"Device '{device.Name}' added to room '{roomName}'");
+        }
+        
+        public void SetRemoteDeviceAccessLevel(string deviceId, AccessLevel accessLevel)
+        {
+            var remoteDevice = _remoteDevices.Find(d => d.Name.Contains(deviceId));
+            if (remoteDevice != null)
             {
-                _rooms[roomName].AddDevice(device);
-                device.SetMediator(_controller);
-                
-                if (device is MotionSensor motionSensor)
-                {
-                    _securityManager.RegisterMotionSensor(motionSensor);
-                }
-                
-                Console.WriteLine($"Device '{device.Name}' added to room '{roomName}'");
+                remoteDevice.SetAccessLevel(accessLevel);
+                Console.WriteLine($"Access level for device '{deviceId}' set to {accessLevel}");
             }
             else
             {
-                Console.WriteLine($"Room '{roomName}' not found. Device not added.");
+                Console.WriteLine($"Remote device '{deviceId}' not found");
             }
         }
         
         public void TurnOnAllLights()
         {
-            foreach (var room in _rooms.Values)
+            foreach (var room in _controller.GetAllRooms())
             {
                 foreach (var device in room.GetDevices())
                 {
@@ -86,7 +115,7 @@ namespace SmartHome
         
         public void TurnOffAllLights()
         {
-            foreach (var room in _rooms.Values)
+            foreach (var room in _controller.GetAllRooms())
             {
                 foreach (var device in room.GetDevices())
                 {
@@ -101,7 +130,7 @@ namespace SmartHome
         
         public void SetAllLightsBrightness(int brightness)
         {
-            foreach (var room in _rooms.Values)
+            foreach (var room in _controller.GetAllRooms())
             {
                 foreach (var device in room.GetDevices())
                 {
@@ -116,9 +145,10 @@ namespace SmartHome
         
         public void SetTemperature(string roomName, double temperature)
         {
-            if (_rooms.ContainsKey(roomName))
+            var room = _controller.GetRoom(roomName);
+            if (room != null)
             {
-                foreach (var device in _rooms[roomName].GetDevices())
+                foreach (var device in room.GetDevices())
                 {
                     if (device is Thermostat thermostat)
                     {
@@ -137,22 +167,30 @@ namespace SmartHome
         
         public void SaveCurrentState(string stateName)
         {
-            foreach (var room in _rooms.Values)
+            var smartHomeMemento = new SmartHomeMemento();
+            
+            foreach (var room in _controller.GetAllRooms())
             {
-                var memento = room.CreateMemento();
-                _stateHistory.SaveState(memento);
-                _namedStates[stateName] = memento;
+                var roomMemento = room.CreateMemento();
+                smartHomeMemento.AddRoomMemento(room.Name, roomMemento);
             }
+            
+            _stateHistory.SaveState(smartHomeMemento);
+            _namedStates[stateName] = smartHomeMemento;
+            
             Console.WriteLine($"Current state saved as '{stateName}'");
         }
         
         public void RestoreState(string stateName)
         {
-            if (_namedStates.TryGetValue(stateName, out var memento))
+            if (_namedStates.TryGetValue(stateName, out var smartHomeMemento))
             {
-                foreach (var room in _rooms.Values)
+                foreach (var room in _controller.GetAllRooms())
                 {
-                    room.RestoreMemento(memento);
+                    if (smartHomeMemento.TryGetRoomMemento(room.Name, out var roomMemento))
+                    {
+                        room.RestoreMemento(roomMemento);
+                    }
                 }
                 Console.WriteLine($"State '{stateName}' restored");
             }
@@ -170,7 +208,7 @@ namespace SmartHome
         public string GetStatusReport()
         {
             var statusVisitor = new StatusReportVisitor();
-            foreach (var room in _rooms.Values)
+            foreach (var room in _controller.GetAllRooms())
             {
                 room.Accept(statusVisitor);
             }
@@ -180,7 +218,7 @@ namespace SmartHome
         public Dictionary<string, double> GetEnergyConsumptionReport()
         {
             var energyVisitor = new EnergyConsumptionVisitor();
-            foreach (var room in _rooms.Values)
+            foreach (var room in _controller.GetAllRooms())
             {
                 room.Accept(energyVisitor);
             }
@@ -190,12 +228,13 @@ namespace SmartHome
         
         public void EnableSecurityMode()
         {
-            _securityManager.EnableSecurityMode(_controller, _rooms);
+            _securityManager.EnableSecurityMode(_controller);
         }
         
         public void DisableSecurityMode()
         {
-            _securityManager.DisableSecurityMode(_rooms);
+            _controller.DisableSecurityMode();
+            _securityManager.DisableSecurityMode();
         }
         
         private class SecurityManager
@@ -220,7 +259,7 @@ namespace SmartHome
                 }
             }
             
-            public void EnableSecurityMode(SmartHomeController controller, Dictionary<string, Room> rooms)
+            public void EnableSecurityMode(SmartHomeController controller)
             {
                 if (IsEnabled)
                 {
@@ -228,30 +267,13 @@ namespace SmartHome
                     return;
                 }
                 
-                foreach (var room in rooms.Values)
-                {
-                    var memento = room.CreateMemento();
-                    _securityStates[room.Name] = memento;
-                    
-                    foreach (var device in room.GetDevices())
-                    {
-                        if (device is Lamp)
-                        {
-                            device.TurnOff();
-                        }
-                        
-                        if (device is MotionSensor sensor)
-                        {
-                            sensor.TurnOn();
-                        }
-                    }
-                }
+                controller.EnableSecurityMode();
                 
                 IsEnabled = true;
                 Console.WriteLine("Security mode enabled");
             }
             
-            public void DisableSecurityMode(Dictionary<string, Room> rooms)
+            public void DisableSecurityMode()
             {
                 if (!IsEnabled)
                 {
@@ -259,17 +281,34 @@ namespace SmartHome
                     return;
                 }
                 
-                foreach (var room in rooms.Values)
-                {
-                    if (_securityStates.TryGetValue(room.Name, out var memento))
-                    {
-                        room.RestoreMemento(memento);
-                    }
-                }
-                
                 IsEnabled = false;
                 Console.WriteLine("Security mode disabled");
             }
+        }
+    }
+    
+    public class SmartHomeMemento
+    {
+        private readonly Dictionary<string, Room.RoomMemento> _roomMementos;
+        
+        public SmartHomeMemento()
+        {
+            _roomMementos = new Dictionary<string, Room.RoomMemento>();
+        }
+        
+        public void AddRoomMemento(string roomName, Room.RoomMemento memento)
+        {
+            _roomMementos[roomName] = memento;
+        }
+        
+        public bool TryGetRoomMemento(string roomName, out Room.RoomMemento memento)
+        {
+            return _roomMementos.TryGetValue(roomName, out memento);
+        }
+        
+        public IReadOnlyDictionary<string, Room.RoomMemento> GetAllRoomMementos()
+        {
+            return _roomMementos;
         }
     }
 } 
