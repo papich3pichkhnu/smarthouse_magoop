@@ -10,7 +10,9 @@ namespace SmartHome
         SetBrightness,
         SetColor,
         SetTemperature,
-        SetColorTemperatureK
+        SetColorTemperatureK,
+        EnableSecurityMode,
+        DisableSecurityMode
     }
     public class Command
     {

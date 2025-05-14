@@ -16,11 +16,11 @@ namespace SmartHome
             Controller = controller;
             Variables = new Dictionary<string, object>();
         }
-        public Device FindDevice(string deviceName)
+        public virtual IDeviceControl FindDevice(string deviceName)
         {
-            return Controller.FindDevice(deviceName);
+            return Controller.FindIDevice(deviceName);
         }
-        public void ExecuteCommand(Command command)
+        public virtual void ExecuteCommand(Command command)
         {
             Controller.ExecuteCommand(command);
         }
@@ -56,7 +56,7 @@ namespace SmartHome
         {
             if (context.Variables.ContainsKey("currentDevice"))
             {
-                var device = context.Variables["currentDevice"] as Device;
+                var device = context.Variables["currentDevice"] as IDeviceControl;
                 if (device != null)
                 {
                     var command = new Command(CommandType.TurnOn, device.Name);
@@ -73,13 +73,31 @@ namespace SmartHome
         {
             if (context.Variables.ContainsKey("currentDevice"))
             {
-                var device = context.Variables["currentDevice"] as Device;
+                var device = context.Variables["currentDevice"] as IDeviceControl;
                 if (device != null)
                 {
                     var command = new Command(CommandType.TurnOff, device.Name);
                     context.ExecuteCommand(command);
                 }
             }
+        }
+    }
+
+    public class EnableSecurityModeExpression : IExpression
+    {
+        public void Interpret(SmartHomeContext context)
+        {
+            var command = new Command(CommandType.EnableSecurityMode, "system");
+            context.ExecuteCommand(command);
+        }
+    }
+
+    public class DisableSecurityModeExpression : IExpression
+    {
+        public void Interpret(SmartHomeContext context)
+        {
+            var command = new Command(CommandType.DisableSecurityMode, "system");
+            context.ExecuteCommand(command);
         }
     }
 
@@ -97,7 +115,7 @@ namespace SmartHome
         {
             if (context.Variables.ContainsKey("currentDevice"))
             {
-                var device = context.Variables["currentDevice"] as Device;
+                var device = context.Variables["currentDevice"] as IDeviceControl;
                 if (device != null)
                 {
                     var command = new Command(CommandType.SetBrightness, device.Name, brightness);
@@ -125,7 +143,7 @@ namespace SmartHome
         {
             if (context.Variables.ContainsKey("currentDevice"))
             {
-                var device = context.Variables["currentDevice"] as Device;
+                var device = context.Variables["currentDevice"] as IDeviceControl;
                 if (device != null)
                 {
                     var command = new Command(CommandType.SetColor, device.Name, red, green, blue);
@@ -148,7 +166,7 @@ namespace SmartHome
         {
             if (context.Variables.ContainsKey("currentDevice"))
             {
-                var device = context.Variables["currentDevice"] as Device;
+                var device = context.Variables["currentDevice"] as IDeviceControl;
                 if (device != null)
                 {
                     var command = new Command(CommandType.SetTemperature, device.Name, temperature);
@@ -188,6 +206,18 @@ namespace SmartHome
 
             var sequence = new SequenceExpression();
 
+            if (tokens.Count >= 4 && tokens[0] == "jarvis" && tokens[1] == "turn")
+            {
+                if (tokens[2] == "on" && tokens.Count >= 5 && tokens[3] == "security" && tokens[4] == "mode")
+                {
+                    return new EnableSecurityModeExpression();
+                }
+                else if (tokens[2] == "off" && tokens.Count >= 5 && tokens[3] == "security" && tokens[4] == "mode")
+                {
+                    return new DisableSecurityModeExpression();
+                }
+            }
+
             while (position < tokens.Count)
             {
                 var expr = ParseSingleExpression(tokens, ref position);
@@ -218,6 +248,35 @@ namespace SmartHome
             return input.Split(new[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries).ToList();
         }
 
+        private string ExtractDeviceName(List<string> tokens, ref int position, params string[] stopTokens)
+        {
+            if (position >= tokens.Count)
+                return string.Empty;
+                
+            int startPos = position;
+            int endPos = position;
+            
+            HashSet<string> defaultStopTokens = new HashSet<string> { "and", "for", "set", "to" };
+            
+            if (stopTokens != null && stopTokens.Length > 0)
+            {
+                foreach (var token in stopTokens)
+                {
+                    defaultStopTokens.Add(token);
+                }
+            }
+            
+            while (endPos < tokens.Count && !defaultStopTokens.Contains(tokens[endPos]))
+            {
+                endPos++;
+            }
+            
+            string deviceName = string.Join(" ", tokens.GetRange(startPos, endPos - startPos));
+            position = endPos; 
+            
+            return deviceName;
+        }
+
         private IExpression ParseSingleExpression(List<string> tokens, ref int position)
         {
             if (position >= tokens.Count)
@@ -238,10 +297,22 @@ namespace SmartHome
 
                         if (action == "on")
                         {
+                            // Check for "turn on security mode" pattern
+                            if (position + 1 < tokens.Count && tokens[position] == "security" && tokens[position + 1] == "mode")
+                            {
+                                position += 2; 
+                                return new EnableSecurityModeExpression();
+                            }
                             return ParseTurnOnExpression(tokens, ref position);
                         }
                         else if (action == "off")
                         {
+                            // Check for "turn off security mode" pattern
+                            if (position + 1 < tokens.Count && tokens[position] == "security" && tokens[position + 1] == "mode")
+                            {
+                                position += 2; 
+                                return new DisableSecurityModeExpression();
+                            }
                             return ParseTurnOffExpression(tokens, ref position);
                         }
                     }
@@ -280,8 +351,7 @@ namespace SmartHome
     {
         if (position < tokens.Count)
         {
-            string deviceName = tokens[position];
-            position++;
+            string deviceName = ExtractDeviceName(tokens, ref position);
             
             var deviceExpression = new DeviceExpression(deviceName);
             
@@ -299,8 +369,7 @@ namespace SmartHome
     {
         if (position < tokens.Count)
         {
-            string deviceName = tokens[position];
-            position++;
+            string deviceName = ExtractDeviceName(tokens, ref position);
             
             var deviceExpression = new DeviceExpression(deviceName);
             
@@ -335,8 +404,7 @@ namespace SmartHome
                     position++;
                     if (position < tokens.Count)
                     {
-                        string deviceName = tokens[position];
-                        position++;
+                        string deviceName = ExtractDeviceName(tokens, ref position);
                         
                         var deviceExpression = new DeviceExpression(deviceName);
                         
@@ -376,8 +444,7 @@ namespace SmartHome
                 position++;
                 if (position < tokens.Count)
                 {
-                    string deviceName = tokens[position];
-                    position++;
+                    string deviceName = ExtractDeviceName(tokens, ref position);
                     
                     var deviceExpression = new DeviceExpression(deviceName);
                     
@@ -432,8 +499,7 @@ namespace SmartHome
                     position++;
                     if (position < tokens.Count)
                     {
-                        string deviceName = tokens[position];
-                        position++;
+                        string deviceName = ExtractDeviceName(tokens, ref position);
                         
                         var deviceExpression = new DeviceExpression(deviceName);
                         
@@ -453,7 +519,5 @@ namespace SmartHome
         
         return null;
     }
-   
-}
-
+    }
 }
